@@ -31,7 +31,7 @@ function getNearest(args){
 		let current = parent.entities[id];
 		for(let i in args.target){
 			if(args.target[i] != current.mtype) continue;
-			if(args.notargetCheck && current.target !=character.name) continue; //could improve to check array for possible targets e.g. only party members
+			if(args.noTargetCheck && current.target !=character.name) continue; //could improve to check array for possible targets e.g. only party members
 			if(args.pathCheck && !can_move_to(current)) continue;
 			let currD = parent.distance(character, current);
 			if(currD < lowD) lowD = currD, target = current;
@@ -48,4 +48,46 @@ function lowestParty(partyArr){
         percents.push(partyArr[i].hp / partyArr[i].max_hp);
     }
     return partyArr[percents.indexOf(Math.min(...percents))]; //could be more performant to use a function that returns the index of the lowest element more simply
+}
+
+//Returns the epoch time of the next possible use of a given skill
+//heavily inspired by Earthiverse's scripts
+function nextSkill(skill){
+	let nSkill = parent.next_skill[skill];
+	if(!nSkill){
+		return 0;
+	}
+	let ms = nSkill - Date.now();
+	if(ms > 0){
+		return ms;
+	}
+	else{
+		return 0;
+	}
+}
+const classPriorities = {'warrior': {'hp': .8, 'mp': .2}, 'priest': {'hp': .1, 'mp': .9}, 'mage': {'hp': .2, 'mp': .8}, 'ranger': {'hp': .4, 'mp': .6}};
+function Regen(){
+    let hpVal = classPriorities[character.ctype]['hp'] * (character.max_hp / character.hp);
+    let mpVal = classPriorities[character.ctype]['mp'] * (character.max_mp / character.mp);
+
+    if(character.mp < character.mp_cost * 5){
+        use_skill('use_mp');
+        return;
+    }
+    if(hpVal > mpVal){
+        if(character.hp > character.max_hp - 100) return;
+        if(character.hp > character.max_hp - 250){
+            use_skill('regen_hp');
+            return;
+        }
+        use_skill('use_hp');
+        return;
+    }
+    if(character.mp > character.max_mp - 100) return;
+    if(character.mp > character.max_mp - 250){
+         use_skill('regen_mp');
+        return;
+    }
+    use_skill('use_mp');
+    return;
 }
