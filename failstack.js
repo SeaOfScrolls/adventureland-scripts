@@ -65,3 +65,5 @@ async function failStack(upgradeItem, stackItem, stackNum, stackLevel, acceptabl
         //do upgrade of upgradeItem
     }
 }
+
+failStack('yourItemHere', failItem, failNum, failLevel, .5);
